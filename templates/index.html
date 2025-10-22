@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Renk Kodu - Mastermind</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <header class="sidebar__header">
+          <h1>Renk Kodu</h1>
+          <p class="subtitle">Mastermind tarzı tahmin oyunu</p>
+        </header>
+        <form id="config-form" class="config-form">
+          <div class="form-group">
+            <label for="mode">Oyun modu</label>
+            <select id="mode" name="mode">
+              <option value="player_vs_ai">Oyuncu vs Yapay Zekâ</option>
+              <option value="pvp_one_by_one">Oyuncu vs Oyuncu (Sırayla)</option>
+            </select>
+          </div>
+          <div class="form-columns">
+            <div class="form-group">
+              <label for="color-count">Renk sayısı</label>
+              <select id="color-count" name="color_count">
+                {% for size in palettes.keys()|sort %}
+                <option value="{{ size }}">{{ size }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="code-length">Kod uzunluğu</label>
+              <input
+                id="code-length"
+                name="length"
+                type="number"
+                min="3"
+                max="6"
+                value="4"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="max-attempts">Deneme hakkı</label>
+            <input
+              id="max-attempts"
+              name="max_attempts"
+              type="number"
+              min="4"
+              max="15"
+              value="10"
+            />
+          </div>
+          <div class="form-group">
+            <label for="player-one">1. oyuncu adı</label>
+            <input id="player-one" name="player1" placeholder="1. Oyuncu" />
+          </div>
+          <div class="form-group" id="player-two-group">
+            <label for="player-two">2. oyuncu adı</label>
+            <input id="player-two" name="player2" placeholder="2. Oyuncu" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary">Oyunu başlat</button>
+            <button type="button" id="reset-btn" class="ghost">Sıfırla</button>
+          </div>
+        </form>
+        <footer class="sidebar__footer">
+          <p>
+            Renkler harflerle temsil edilir ve her harf yalnızca bir kez
+            kullanılabilir. Tahmin yapmak için ana paneldeki renkleri tıklayın.
+          </p>
+        </footer>
+      </aside>
+      <main class="main">
+        <section class="status-card">
+          <div class="status-row">
+            <h2 id="mode-title">Yeni oyun başlatın</h2>
+            <span id="game-status" class="badge">Hazır</span>
+          </div>
+          <p id="status-message" class="status-message">
+            Yan menüden oyun modunu seçerek başlayabilirsin.
+          </p>
+          <div id="turn-info" class="turn-info"></div>
+          <div id="attempt-info" class="attempt-info"></div>
+        </section>
+        <section class="board">
+          <div class="board__column">
+            <h3>Renk paleti</h3>
+            <div id="palette" class="palette"></div>
+            <div class="current-guess">
+              <div class="current-guess__header">
+                <h3>Seçili renkler</h3>
+                <span id="guess-count" class="guess-count"></span>
+              </div>
+              <div id="current-guess" class="current-guess__slots"></div>
+              <div class="guess-actions">
+                <button type="button" id="undo-btn" class="ghost">Geri al</button>
+                <button type="button" id="submit-btn" class="primary">Tahmini gönder</button>
+              </div>
+            </div>
+          </div>
+          <div class="board__column history-column">
+            <h3>Tahmin geçmişi</h3>
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Oyuncu</th>
+                  <th>Tahmin</th>
+                  <th>Tam</th>
+                  <th>Renk</th>
+                </tr>
+              </thead>
+              <tbody id="history-body"></tbody>
+            </table>
+            <p id="history-empty" class="placeholder">
+              Henüz tahmin yapılmadı.
+            </p>
+          </div>
+        </section>
+        <section id="secret-panel" class="secret" hidden>
+          <h3>Gizli kod</h3>
+          <div id="secret-code" class="secret__code"></div>
+          <p id="secret-text" class="secret__text"></p>
+        </section>
+      </main>
+    </div>
+    <script>
+      window.COLOR_NAMES = {{ color_names | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </body>
+</html>
