@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Renk Kodu (Mastermind) – Yapay Zekâya Karşı</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f172a;
+            --muted: #9aa4b2;
+            --text: #e5e7eb;
+            --accent: #60a5fa;
+            --good: #34d399;
+            --warn: #fbbf24;
+            --bad: #ef4444;
+            --border: #1f2937;
+            --card: #111827;
+            --shadow: 0 12px 32px rgba(0, 0, 0, .35);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font: 500 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+            background: radial-gradient(1200px 600px at 10% -10%, #13203a 0%, transparent 60%), linear-gradient(180deg, #0b1220 0%, #0b1220 100%);
+            color: var(--text)
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: .3px
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 18px
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow)
+        }
+
+        .card .hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .card .bd {
+            padding: 16px
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: #0b1220;
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform .06s ease, opacity .2s ease, border-color .2s ease
+        }
+
+        .btn:hover {
+            border-color: #2b3a52
+        }
+
+        .btn:active {
+            transform: translateY(1px)
+        }
+
+        .btn[disabled] {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, #2563eb, #1f4fd8);
+            border: 1px solid #1c3faa
+        }
+
+        .seg {
+            display: flex;
+            background: #0b1220;
+            border: 1px solid var(--border);
+            padding: 5px;
+            border-radius: 12px;
+            gap: 5px
+        }
+
+        .seg button {
+            flex: 1 1 auto;
+            border-radius: 8px;
+            padding: 8px 10px
+        }
+
+        .seg button.is-on {
+            background: #12213e;
+            border-color: #23406f
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        input[type="number"],
+        select {
+            background: #0b1220;
+            color: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px
+        }
+
+        /* Palette */
+        .palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .pill {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, .25);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 12px;
+            transition: transform .08s ease, box-shadow .2s ease, border-color .2s ease
+        }
+
+        .pill:hover {
+            transform: translateY(-1px);
+            border-color: #fff
+        }
+
+        /* Board */
+        .board {
+            display: grid;
+            gap: 10px
+        }
+
+        .guess {
+            display: grid;
+            grid-template-columns: repeat(var(--len), 40px) 1fr;
+            gap: 10px;
+            align-items: center
+        }
+
+        .peg {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px dashed #2b3a52;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .peg.filled {
+            border-style: solid
+        }
+
+        .fb {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .tag {
+            font-size: 12px;
+            padding: 6px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #0b1220
+        }
+
+        .tag.good {
+            border-color: #1f7a55;
+            background: #0e2b22
+        }
+
+        .tag.warn {
+            border-color: #7a661f;
+            background: #2b260e
+        }
+
+        .inline {
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .spacer {
+            height: 10px
+        }
+
+        .notice {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .log {
+            max-height: 340px;
+            overflow: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 10px;
+            background: #0b1220
+        }
+
+        .kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            background: #0b1220;
+            border: 1px solid var(--border);
+            padding: 0 6px;
+            border-radius: 6px
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <div class="title">Renk Kodu • Yapay Zekâ Karşı (Mastermind)</div>
+                <div class="subtitle">Tarayıcıda çalışan sürüm — herhangi bir kurulum gerekmez.</div>
+            </div>
+            <div class="row">
+                <button class="btn" id="btnHelp">Nasıl oynanır?</button>
+                <button class="btn" id="btnReset">Yeni Oyun</button>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- SETTINGS -->
+            <section class="card">
+                <div class="hd"><strong>Ayarlar</strong><span class="muted">Önce modu seç</span></div>
+                <div class="bd">
+                    <div class="field">
+                        <label>Oyun Modu</label>
+                        <div class="seg" role="tablist">
+                            <button class="btn is-on" data-mode="human-guesses">Sen Tahmin Et</button>
+                            <button class="btn" data-mode="ai-guesses">AI Tahmin Etsin</button>
+                        </div>
+                    </div>
+
+                    <div class="spacer"></div>
+                    <div class="row">
+                        <div class="field" style="width:120px">
+                            <label>Kod Uzunluğu</label>
+                            <input id="len" type="number" min="3" max="6" value="4" />
+                        </div>
+                        <div class="field" style="width:140px">
+                            <label>Renk Sayısı</label>
+                            <select id="colorCount">
+                                <option value="6">6 (R,G,B,Y,O,P)</option>
+                                <option value="8">8 (+ C,W)</option>
+                            </select>
+                        </div>
+                        <div class="field" style="width:160px">
+                            <label>Deneme Sayısı</label>
+                            <input id="tries" type="number" min="6" max="15" value="10" />
+                        </div>
+                    </div>
+
+                    <div class="spacer"></div>
+                    <div class="field">
+                        <label>Palet</label>
+                        <div class="palette" id="palette"></div>
+                        <div class="notice">Bir renge tıklayıp alttaki boş pime tıkla veya <span class="kbd">1..8</span>
+                            kısayoluyla yerleştir.</div>
+                    </div>
+
+                    <div class="spacer"></div>
+                    <div class="row">
+                        <button class="btn-primary btn" id="start">Başlat</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PLAY AREA -->
+            <section class="card">
+                <div class="hd"><strong>Oyun Alanı</strong><span class="muted" id="status">Hazır</span></div>
+                <div class="bd" id="play">
+                    <!-- dynamic -->
+                </div>
+            </section>
+        </div>
+
+        <div class="spacer" style="height:18px"></div>
+
+        <!-- LOGS / HELP -->
+        <section class="card">
+            <div class="hd"><strong>Kayıt & Yardım</strong></div>
+            <div class="bd">
+                <div class="log" id="log"></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // === Core Helpers ===
+        const PALETTES = {
+            6: ["R", "G", "B", "Y", "O", "P"],
+            8: ["R", "G", "B", "Y", "O", "P", "C", "W"],
+        };
+        const COLOR_NAMES = { R: "Red", G: "Green", B: "Blue", Y: "Yellow", O: "Orange", P: "Purple", C: "Cyan", W: "White" };
+        const COLOR_HEX = { R: '#ef4444', G: '#22c55e', B: '#3b82f6', Y: '#eab308', O: '#fb923c', P: '#a855f7', C: '#06b6d4', W: '#e5e7eb' };
+
+        const $ = sel => document.querySelector(sel);
+        const $$ = sel => Array.from(document.querySelectorAll(sel));
+        const log = (m) => { const el = $('#log'); const p = document.createElement('div'); p.textContent = m; el.prepend(p); };
+
+        function feedback(secret, guess) {
+            const n = secret.length;
+            let usedS = Array(n).fill(false), usedG = Array(n).fill(false);
+            let exact = 0, colorOnly = 0;
+            for (let i = 0; i < n; i++) {
+                if (guess[i] === secret[i]) { exact++; usedS[i] = true; usedG[i] = true; }
+            }
+            for (let i = 0; i < n; i++) {
+                if (usedG[i]) continue;
+                for (let j = 0; j < n; j++) {
+                    if (usedS[j]) continue;
+                    if (guess[i] === secret[j]) { colorOnly++; usedS[j] = true; usedG[i] = true; break; }
+                }
+            }
+            return [exact, colorOnly];
+        }
+
+        function allCodes(len, symbols) {
+            // Cartesian product; beware of explosion with 8^6=262k (still fine for JS)
+            const out = []; const recur = (cur) => {
+                if (cur.length === len) { out.push(cur.slice()); return; }
+                for (const s of symbols) { cur.push(s); recur(cur); cur.pop(); }
+            }; recur([]); return out;
+        }
+
+        // === Solver (AI guesses your secret) ===
+        class Solver {
+            constructor(len, symbols) { this.len = len; this.symbols = symbols; this.candidates = allCodes(len, symbols); this.last = null; }
+            next() {
+                if (!this.candidates.length) {
+                    this.last = Array.from({ length: this.len }, _ => this.symbols[Math.floor(Math.random() * this.symbols.length)]);
+                } else {
+                    const idx = Math.floor(Math.random() * this.candidates.length);
+                    this.last = this.candidates[idx];
+                }
+                return this.last;
+            }
+            apply(guess, fb) {
+                const [ex, co] = fb; const keep = [];
+                for (const c of this.candidates) {
+                    const x = feedback(c, guess);
+                    if (x[0] === ex && x[1] === co) keep.push(c);
+                }
+                this.candidates = keep;
+            }
+        }
+
+        // === UI State ===
+        const state = {
+            mode: 'human-guesses',
+            len: 4,
+            colorCount: 6,
+            tries: 10,
+            symbols: PALETTES[6],
+            secret: null,
+            currentRow: 0,
+            currentGuess: [],
+            solver: null,
+            running: false,
+        };
+
+        function applySettings() {
+            state.len = Math.min(6, Math.max(3, parseInt($('#len').value || 4)));
+            state.colorCount = parseInt($('#colorCount').value);
+            state.symbols = PALETTES[state.colorCount];
+            state.tries = Math.min(15, Math.max(6, parseInt($('#tries').value || 10)));
+            renderPalette();
+        }
+
+        function renderPalette() {
+            const pal = $('#palette'); pal.innerHTML = '';
+            for (const [i, sym] of state.symbols.entries()) {
+                const el = document.createElement('button');
+                el.className = 'pill';
+                el.style.background = COLOR_HEX[sym] || '#374151';
+                el.title = `${sym} = ${COLOR_NAMES[sym]}`;
+                el.textContent = sym;
+                el.addEventListener('click', () => placeColor(sym));
+                pal.appendChild(el);
+            }
+        }
+
+        function placeColor(sym) {
+            if (!state.running) return;
+            const row = $(`#row-${state.currentRow}`);
+            if (!row) return;
+            const empty = Array.from(row.querySelectorAll('.peg')).find(p => !p.dataset.val);
+            if (!empty) return;
+            empty.dataset.val = sym; empty.classList.add('filled');
+            empty.style.background = COLOR_HEX[sym];
+            empty.style.borderColor = 'rgba(255,255,255,.3)';
+            empty.textContent = sym;
+            buildCurrentGuess();
+        }
+
+        function buildCurrentGuess() {
+            const row = $(`#row-${state.currentRow}`);
+            const vals = Array.from(row.querySelectorAll('.peg')).map(p => p.dataset.val || null);
+            state.currentGuess = vals;
+            $('#status').textContent = `Tur ${state.currentRow + 1}/${state.tries}`;
+            const ready = vals.every(Boolean);
+            const btn = row.querySelector('.act'); if (btn) btn.disabled = !ready;
+        }
+
+        function randomSecret() {
+            const arr = []; for (let i = 0; i < state.len; i++) { arr.push(state.symbols[Math.floor(Math.random() * state.symbols.length)]); } return arr;
+        }
+
+        function startGame() {
+            applySettings(); log('Yeni oyun başlatıldı.');
+            state.running = true; state.currentRow = 0; state.currentGuess = [];
+            $('#play').innerHTML = '';
+            $('#status').textContent = 'Hazır';
+
+            if (state.mode === 'human-guesses') {
+                state.secret = randomSecret();
+                drawBoard();
+            } else {
+                // AI guesses
+                state.secret = null; // user will set via UI
+                drawAiBoard();
+            }
+        }
+
+        function drawBoard() {
+            const wrap = document.createElement('div');
+            wrap.className = 'board';
+            wrap.style.setProperty('--len', state.len);
+
+            for (let r = 0; r < state.tries; r++) {
+                const row = document.createElement('div'); row.id = `row-${r}`; row.className = 'guess';
+                for (let c = 0; c < state.len; c++) {
+                    const peg = document.createElement('button'); peg.className = 'peg'; peg.title = 'Renk yerleştirmek için paletten seç';
+                    peg.addEventListener('click', () => { peg.dataset.val = ''; peg.classList.remove('filled'); peg.style.background = ''; peg.style.borderColor = '#2b3a52'; peg.textContent = ''; buildCurrentGuess(); });
+                    row.appendChild(peg);
+                }
+                const actions = document.createElement('div'); actions.className = 'inline';
+                const submit = document.createElement('button'); submit.className = 'btn act'; submit.textContent = 'Tahmin Et'; submit.disabled = true;
+                const feedbackBox = document.createElement('div'); feedbackBox.className = 'fb';
+                const tExact = document.createElement('span'); tExact.className = 'tag good'; tExact.textContent = 'tam: 0';
+                const tColor = document.createElement('span'); tColor.className = 'tag warn'; tColor.textContent = 'renk: 0';
+                feedbackBox.append(tExact, tColor);
+                actions.append(submit, feedbackBox);
+                row.appendChild(actions);
+                wrap.appendChild(row);
+
+                submit.addEventListener('click', () => {
+                    const vals = Array.from(row.querySelectorAll('.peg')).map(p => p.dataset.val);
+                    if (vals.some(v => !v)) return;
+                    const [ex, co] = feedback(state.secret, vals);
+                    tExact.textContent = 'tam: ' + ex; tColor.textContent = 'renk: ' + co;
+                    log(`Tahmin ${r + 1}: ${vals.join('')} → ${ex} tam, ${co} renk`);
+                    if (ex === state.len) { $('#status').textContent = `✅ Kazandın! ${r + 1}. denemede`; state.running = false; revealSecret(); return; }
+                    state.currentRow = r + 1; buildCurrentGuess();
+                    if (state.currentRow >= state.tries) { $('#status').textContent = '❌ Deneme hakkı bitti.'; state.running = false; revealSecret(); }
+                });
+            }
+
+            $('#play').appendChild(wrap);
+            buildCurrentGuess();
+            // keyboard shortcuts 1..8
+            window.onkeydown = (e) => {
+                const idx = parseInt(e.key, 10); if (!isNaN(idx) && idx >= 1 && idx <= state.symbols.length) { placeColor(state.symbols[idx - 1]); }
+            };
+        }
+
+        function revealSecret() {
+            const note = document.createElement('div');
+            note.className = 'notice';
+            note.style.marginTop = '10px';
+            note.textContent = `Gizli kod: ${(state.secret || []).join(' ')}`;
+            $('#play').appendChild(note);
+        }
+
+        // === AI guesses mode ===
+        function drawAiBoard() {
+            const wrap = document.createElement('div');
+            wrap.className = 'col';
+
+            const pick = document.createElement('div'); pick.className = 'row';
+            const secretSlots = document.createElement('div'); secretSlots.className = 'row';
+            secretSlots.style.gap = '8px'; secretSlots.style.alignItems = 'center';
+            const slots = []; for (let i = 0; i < state.len; i++) { const s = document.createElement('button'); s.className = 'peg'; slots.push(s); secretSlots.appendChild(s); }
+            const btnClear = document.createElement('button'); btnClear.className = 'btn'; btnClear.textContent = 'Temizle'; btnClear.onclick = () => { slots.forEach(s => { s.dataset.val = ''; s.classList.remove('filled'); s.style.background = ''; s.style.borderColor = '#2b3a52'; s.textContent = ''; }); };
+
+            pick.append(secretSlots, btnClear);
+            wrap.appendChild(pick);
+
+            const hint = document.createElement('div'); hint.className = 'notice'; hint.textContent = 'Gizli kodunu oluştur: paletten slotlara yerleştir. Sonra AI başlat.';
+            wrap.appendChild(hint);
+
+            const actions = document.createElement('div'); actions.className = 'row';
+            const btnStartAI = document.createElement('button'); btnStartAI.className = 'btn-primary btn'; btnStartAI.textContent = 'AI Başlasın';
+            const fbBox = document.createElement('div'); fbBox.className = 'col';
+            const logBox = document.createElement('div'); logBox.className = 'col';
+
+            const out = document.createElement('div'); out.className = 'log'; out.style.maxHeight = '260px';
+            logBox.appendChild(out);
+
+            actions.append(btnStartAI);
+            wrap.appendChild(actions);
+            wrap.appendChild(out);
+
+            $('#play').appendChild(wrap);
+
+            state.solver = new Solver(state.len, state.symbols);
+
+            btnStartAI.onclick = async () => {
+                // read secret from slots
+                const vals = slots.map(s => s.dataset.val || '');
+                if (vals.some(v => !v)) { alert('Lütfen gizli kodundaki tüm slotları doldur.'); return; }
+                state.secret = vals; $('#status').textContent = 'AI düşünüyor…'; log('AI başlatıldı.');
+
+                let attempt = 0; state.running = true;
+                while (state.running && attempt < state.tries) {
+                    attempt++;
+                    const guess = state.solver.next();
+                    const fb = feedback(state.secret, guess);
+                    out.prepend(Object.assign(document.createElement('div'), { textContent: `[${attempt}/${state.tries}] AI tahmini ${guess.join('')} → ${fb[0]} tam, ${fb[1]} renk` }));
+                    if (fb[0] === state.len) { $('#status').textContent = `🤖 AI ${attempt}. denemede buldu!`; state.running = false; break; }
+                    state.solver.apply(guess, fb);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                if (state.running && attempt >= state.tries) { $('#status').textContent = '🤖 AI deneme hakkını bitirdi, bulamadı.'; state.running = false; }
+            };
+
+            // palette interactions
+            $('#palette').onclick = (e) => {
+                const sym = e.target && e.target.textContent && e.target.textContent.trim();
+                if (!sym || !state.symbols.includes(sym)) return;
+                const slot = slots.find(s => !s.dataset.val);
+                if (!slot) return;
+                slot.dataset.val = sym; slot.classList.add('filled'); slot.style.background = COLOR_HEX[sym]; slot.style.borderColor = 'rgba(255,255,255,.3)'; slot.textContent = sym;
+            };
+        }
+
+        // === Wiring ===
+        function setMode(m) { state.mode = m; $$('.seg button').forEach(b => b.classList.toggle('is-on', b.dataset.mode === m)); }
+
+        $('#btnHelp').onclick = () => {
+            const txt = `Kurallar:\n- Gizli kod ${$('#len').value} uzunluğunda ve seçtiğin paletten oluşturulur.\n- Her tahminden sonra geri bildirim verilir: \"tam\" (renk+konum) ve \"renk\" (yanlış konum).\n- Tekrar renkler izinli (örn. RRGG).\nKısayollar:\n- Paletten yerleştirme: 1..8 tuşları.\nModlar:\n- Sen Tahmin Et: AI gizli kodu üretir, sen bulursun.\n- AI Tahmin Etsin: Gizli kodu sen belirlersin, AI filtreleme ile bulmaya çalışır.`;
+            alert(txt);
+        };
+
+        $('#btnReset').onclick = startGame;
+        $('#start').onclick = startGame;
+
+        $$('.seg button').forEach(b => {
+            b.addEventListener('click', () => { setMode(b.dataset.mode); });
+        });
+
+        ['len', 'colorCount', 'tries'].forEach(id => { $('#' + id).addEventListener('change', applySettings); });
+
+        // init
+        setMode('human-guesses');
+        applySettings();
+    </script>
+</body>
+
+</html>
